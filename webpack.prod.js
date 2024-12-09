@@ -15,8 +15,15 @@ module.exports = {
             },
             {
                 test: /\.scss$/,
-                use: [ 'style-loader', 'css-loader', 'sass-loader' ]
-        }
+                use: [ 'style-loader', 'css-loader', 'sass-loader' ],
+            },
+            {
+                test: /\.(jpg|jpeg|png|mp4)$/,
+                loader: 'file-loader',
+                options: {
+                    name: 'media/[name].[ext]',
+                },
+            },
         ]
     },
     plugins: [
