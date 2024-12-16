@@ -5,6 +5,7 @@
     --white-color: #fff;
     --light-grey-color: #ddd;
     --blue-color:#0f2454;
+    --red-color: #ff5869;
 }
 
 *{
@@ -244,7 +245,7 @@ main{
 
 /*==================Search Start================================*/
 #location-search{
-    transform: translateY(-170%);
+    transform: translateY(-115%);
 }
 
 .form-wrapper{
@@ -275,7 +276,115 @@ form input,select{
 }
 /*==================Search Close================================*/
 
+/*==================Calendar Start================================*/
 
+#calendar{
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+}
+.calendar{
+    width: 380px;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    background: var(--white-color);
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+}
+.header{
+    display:flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+}
+
+
+.border{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+}
+
+
+.monthYear{
+    text-align: center;
+    font-weight: 600;
+    width: 150px;
+}
+
+.header button{
+    display: flex;
+    align-content: center;
+    justify-content: center;
+    border: none;
+    border-radius: 50%;
+    background: var(--white-color);
+    cursor:pointer;
+    width: 40px;
+    height: 40px;
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.2);
+}
+
+.days{
+    display: grid;
+    grid-template-columns: repeat(7,1fr);
+}
+
+.day{
+    text-align: center;
+    padding: 5px;
+    color: var(--light-grey-color);
+    font-weight: 500;
+}
+
+.dates{
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 5px;
+}
+
+.date{
+    display: flex;
+    align-content: center;
+    justify-content: center;
+    text-align: center;
+    padding: 10px;
+    margin: auto;
+    cursor:pointer;
+    font-weight: 600;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    transition: 0.2s;
+
+}
+
+.date:hover,
+.date.active{
+    background:var(--red-color);
+    color: var(--white-color);
+}
+
+.date.inactive{
+    color: var(--light-grey-color);
+}
+
+.date.inactive:hover{
+    color: var(--white-color);
+}
+
+.date.selected{
+    background-color: var(--blue-color);
+    color: var(--white-color);
+    border-radius: 50%;
+}
+
+/*==================Calendar Close================================*/
 
 /*==================About Start================================*/
 .about-content-wrapper{
