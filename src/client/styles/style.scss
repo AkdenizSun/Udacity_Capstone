@@ -39,6 +39,12 @@ a{
     text-decoration: none;
 }
 
+#weather-info{
+    font-size: 1rem;
+    letter-spacing: 6px;
+    color: var(--primary-color);
+}
+
 .heading-normal-txt{
     font-size: 1rem;
     letter-spacing: 6px;
@@ -385,7 +391,12 @@ form input,select{
 }
 
 /*==================Calendar Close================================*/
-
+/* ==================Search Results  Start =======================*/
+#content{
+    transform: translateY(0%);
+    margin: 2rem 0;
+}
+/* ==================Search Results  Close ======================*/
 /*==================About Start================================*/
 .about-content-wrapper{
     display: grid;

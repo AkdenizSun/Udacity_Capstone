@@ -59,10 +59,10 @@ const updateCalendar = () => {
     const currentYear = currentDate.getFullYear();
     const currentMonth = currentDate.getMonth();
 
-    const firstDay = new Date(currentYear,currentMonth, 1 );
-    const lastDay = new Date(currentYear,currentMonth + 1, 0);
+    const firstDay = new Date(currentYear, currentMonth, 1 );
+    const lastDay = new Date(currentYear, currentMonth + 1, 0);
     const totalDays = lastDay.getDate();
-    const firstDayIndex = firstDay.getDay();
+    const firstDayIndex = (firstDay.getDay() === 0) ? 6 : firstDay.getDay() - 1;
     const lastDayIndex = lastDay.getDay();
 
     const monthYearString = currentDate.toLocaleString('default', {month:'long', year:'numeric'});
@@ -81,13 +81,14 @@ const updateCalendar = () => {
         datesHTML += `<div class="date ${activeClass}">${i}</div>`;
     }
     
-    for(let i = 1; i <= 7 - lastDayIndex; i++) {
+    for (let i = 1; i <= (7 - ((lastDayIndex === 0) ? 7 : lastDayIndex)); i++) {
+
         const nextDate = new Date(currentYear, currentMonth + 1, i);
         datesHTML += `<div class="date inactive">${nextDate.getDate()}</div>`;
     }
     
     datesElement.innerHTML = datesHTML;
-    attachDateClickHandlers();
+    //attachDateClickHandlers();
 
 
 };
@@ -101,44 +102,36 @@ nextBtn.addEventListener('click', () => {
     updateCalendar();
 });
 let selectedDate = new Date();
-const attachDateClickHandlers = () => {
-    const dateElements = document.querySelectorAll('.date:not(.inactive)');
-    dateElements.forEach((element) => {
-        element.addEventListener('click', (event) => {
-            // Remove the 'selected' class from any previously selected date
-            document.querySelectorAll('.date.selected').forEach(
-                el => el.classList.remove('selected')
-            );
-    
-            // Add the 'selected' class to the clicked date
-            event.target.classList.add('selected');
-    
-            // Extract the date information from the clicked element
-            const dateString = element.textContent.trim();
-            const currentYear = currentDate.getFullYear();
-            const currentMonth = currentDate.getMonth(); // 0-indexed
-            selectedDate = new Date(currentYear, currentMonth, dateString);
-    
-    
-            // Call a function to handle the selected date
-            handleSelectedDate(selectedDate);
-        });
-    });
-    };
-    
-function handleSelectedDate(selectedDate) {
-    // Do something with the selected date, e.g., log it to the console:
-    console.log(selectedDate);
 
 
-    //processSelectedDate(selectedDate);
-}
+datesElement.addEventListener('click', (event) => {
+    const element = event.target;
+    if (element.classList.contains('date') && !element.classList.contains('inactive')) {
+        document.querySelectorAll('.date.selected').forEach(
+            el => el.classList.remove('selected')
+        );
+        element.classList.add('selected');
 
-document.getElementById('primary-btn').addEventListener('click', () =>{
-    handleInfo().then(x => console.log(x))
+        const dateString = element.textContent.trim();
+        const currentYear = currentDate.getFullYear();
+        const currentMonth = currentDate.getMonth();
+        selectedDate = new Date(currentYear, currentMonth, dateString);
+        //handleSelectedDate(selectedDate);
+    }
+});
+    
+// function handleSelectedDate(selectedDate) {
+//     console.log(selectedDate);
+// }
+
+updateCalendar();
+
+document.getElementById('primary-btn').addEventListener('click', async () =>{
+    const x = await getForecastAndPicture();
+     updateUI(x.weather, x.pictureURL);
 });
 
-async function handleInfo() {
+async function getForecastAndPicture() {
     let destination = document.getElementById('where-to').value;
     let tripDate = selectedDate.toISOString().split("T")[0];
     
@@ -155,13 +148,26 @@ async function handleInfo() {
         });
 
         const data = await response.json();
-        return data.weather;
+        return data;
     } catch (error) {
         console.error('Error calling API', error);
     }
 }
 
+const updateUI = (temp, placePicture) => {
+    try {
+        const weatherInfoDiv = document.getElementById("weather-info");
+        const imageContainerDiv = document.getElementById("image-container");
+
+        weatherInfoDiv.innerHTML = `
+        <p>Temperature:${temp}°C</p> `;
     
+        imageContainerDiv.innerHTML = `
+            <img src="${placePicture}" style="width: 600px; height: auto; border: 1px solid #ccc;">
+        `;
 
+    } catch (error) {
+        console.error('Failed :', error.message);
+    }
+}
 
-updateCalendar();

@@ -23,22 +23,14 @@ app.use(cors());
 // Initialize the main project folder
 app.use(express.static('dist'));
 
-
-app.post('/add', function (request, response) {
-    console.log(request);
-    makeData(request);
-    response.send({
-        message: 'New entry was added',
-    });
-
-});
-
 app.get('/get-image-and-forecast',function(req, res){
     console.log(req);
     getImageAndForecast()
     const {placeName,selectedDate} = req.body;
     getGeolocation(placename);
+    fetchImages(placename);
 });
+
 
 const getGeolocation = async (placeName) => {
 
@@ -71,7 +63,7 @@ const getGeolocation = async (placeName) => {
 
 weatherbitAPIKey = '215ba38b55724ce4bbde6d2afd164271';
 
-const getWeatherForecast = async (lat, lng, date) => {
+const getForecastWeather = async (lat, lng, date) => {
     const weatherURL = `https://api.weatherbit.io/v2.0/forecast/daily?lat=${lat}&lon=${lng}&key=${weatherbitAPIKey}`;
     const response = await fetch(weatherURL);
 
@@ -91,15 +83,65 @@ const getWeatherForecast = async (lat, lng, date) => {
     }
 };
 
-(async () => {
+const getHistoricalWeather = async (lat, lng, date) => {
+    const weatherURL = `https://api.weatherbit.io/v2.0/history/daily?lat=${lat}&lon=${lng}&start_date=${date}&end_date=${date}&key=${weatherbitAPIKey}`;
+
+    const response = await fetch(weatherURL);
+
+    if (!response.ok) {
+        throw new Error(`Weather API error: ${response.statusText}`);
+    }
+
+    const weatherData = await response.json();
+
+    let historicalDay = weatherData.data[0];
+    return {
+        max_temp: historicalDay.app_max_temp,
+    };
+
+};
+
+const getWeatherData = async (lat, lng, date) => {
+    const targetDate = new Date(date);
+    const today = new Date();
+    const maxForecastDays = 16;
+
+    const isFuture = (targetDate - today) / (1000 * 60 * 60 * 24) < maxForecastDays;
+
+    if (isFuture) {
+        return await getForecastWeather(lat, lng, date);
+    } else {
+        return await getHistoricalWeather(lat, lng, date);
+    }
+
+};
+
+/*(async () => {
     try {
-        const weather = await getWeatherForecast(-33.8688, 151.2093, '2024-12-17');
+        const weather = await getWeatherData(-33.8688, 151.2093, '2024-11-17');
+        const placeName = "Sydney";
     
-        console.log("Weather data:", weather); 
+        console.log("Weather data:", weather);
+
+
+        const urlPicture = await fetchImage("Sydney");
+        console.log("Picture url:", urlPicture);
+
+        const weatherInfoDiv = document.getElementById("weather-info");
+        const imageContainerDiv = document.getElementById("image-container");
+
+        weatherInfoDiv.innerHTML = `
+        <p>Place: ${placeName}</p>
+        <p>Max Temperature:${weather.max_temp}°C</p> `;
+    
+        imageContainerDiv.innerHTML = `
+            <img src="${imageUrl}" alt="${placeName}" style="width: 600px; height: auto; border: 1px solid #ccc;">
+        `;
+
     } catch (error) {
         console.error('Failed :', error.message);
     }
-})();
+})();*/
 
 
 
@@ -117,10 +159,13 @@ const getWeatherForecast = async (lat, lng, date) => {
 /*===================================================== */
 
 
+
+
+
 /*
 
 ToDo:
-1.Write method to get historical weather for a given day of year.
+1. Write method to get historical weather for a given day of year.
 2. Combine two weather methods (if date is in nearest future then get forecast else get historical data)
 3. Write method to get picture of place by name (or lat/lon?)
 4. Learn how to pass picture to client.
@@ -129,26 +174,38 @@ ToDo:
 */
 
 
-function makeData(request) {
-    let newData = request.body;
-    let newEntry = {
-        date: newData.date,
-        temperature: newData.temperature,
-        content: newData.content
-    };
-    projectData.entries.push(newEntry);
-}
+const pixabayApiKey = "47706648-830d690e93491499456fd445b";
 
-//getGeolocation('london').then(x => console.log(x));
+const fetchImage = async (placeName) => {
+    try {
+      const response = await fetch(`https://pixabay.com/api/?key=${pixabayApiKey}&q=${placeName}&image_type=photo`);
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status} - ${response.statusText}`);
+      }
+      const data = await response.json();
+      return data.hits[0].webformatURL;
+    } catch (error) {
+      console.error("Error:", error.message);
+      throw error;
+    }
+  };
 
-
-app.post('/api/v1/forecast', (req,res) => {
+app.post('/api/v1/forecast', async (req,res) => {
     
     const{ destination, tripDate } = req.body;
 
     try {
+        const coords = await getGeolocation(destination);
+
+        const weather = await getWeatherData(coords.lat, coords.lng, tripDate);
+        console.log("Weather data:", weather);
+
+        const urlPicture = await fetchImage(destination);
+        console.log("Picture url:", urlPicture);
+
         const forecast = {
-            weather: `Hello ${destination}, the weather is ${tripDate}`
+            weather: weather,
+            pictureURL:  urlPicture,
         };
         res.json(forecast);
     } catch (error) {
